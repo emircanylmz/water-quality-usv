@@ -9,6 +9,7 @@ description = "Dual-control unmanned surface vehicle for geo-referenced water-qu
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [{ name = "Emircan Yılmaz" }]
+license = { file = "LICENSE" }
 dependencies = [
     "openpyxl>=3.1,<4",
     "pandas>=2.0,<3",

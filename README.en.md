@@ -157,4 +157,7 @@ Raw XLSX/KML field outputs may contain sensitive GPS coordinates and are ignored
 
 ## License
 
-No open-source license has been assigned yet. Choose an appropriate license before publishing the repository as open source.
+This project is licensed under the [MIT License](LICENSE). You may use, modify,
+and distribute the source code provided that the copyright notice and license
+text are retained in copies. Third-party dependencies remain subject to their
+respective licenses.

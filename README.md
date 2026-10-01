@@ -157,4 +157,6 @@ Ham XLSX/KML saha çıktıları GPS koordinatları içerebilir ve varsayılan ol
 
 ## Lisans
 
-Bu depoya henüz bir açık kaynak lisansı atanmadı. Açık kaynak olarak yayımlamadan önce uygun lisans seçilmelidir.
+Bu proje [MIT Lisansı](LICENSE) ile lisanslanmıştır. Kaynak kodu kullanabilir,
+değiştirebilir ve dağıtabilirsiniz; telif hakkı bildirimi ile lisans metnini
+kopyalarda korumanız gerekir. Üçüncü taraf bağımlılıklar kendi lisanslarına tabidir.
