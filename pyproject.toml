@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "water-quality-usv"
+version = "1.0.0"
+description = "Dual-control unmanned surface vehicle for geo-referenced water-quality monitoring"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Emircan Yılmaz" }]
+dependencies = [
+    "openpyxl>=3.1,<4",
+    "pandas>=2.0,<3",
+    "pynput>=1.7,<2",
+    "pyserial>=3.5,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<10",
+    "ruff>=0.14,<1",
+]
+
+[project.scripts]
+usv-dual-control = "DualControl:main"
+usv-logger = "xslx_logger:main"
+usv-kml = "xslx_to_kml:main"
+usv-telemetry = "telemetry:main"
+
+[tool.setuptools]
+packages = ["usv_monitoring"]
+py-modules = ["DualControl", "keyboard", "telemetry", "xslx_logger", "xslx_to_kml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]

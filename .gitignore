@@ -1,0 +1,24 @@
+.DS_Store
+.idea/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.env
+
+# Field data and generated map files may contain sensitive locations.
+all_sensors.xlsx
+lake_data*.xlsx
+ph.kml
+turbidity.kml
+temperature.kml
+
+# The graduation report contains personal contact and address information.
+*.pdf
