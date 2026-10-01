@@ -11,7 +11,7 @@ Bu proje; pH, bulanıklık ve su sıcaklığı ölçümlerini konum bilgisiyle e
 ```mermaid
 flowchart LR
     RC["RC kumanda ve X8R"] --> INV["SBUS tersleyici ve 5 V - 3.3 V seviye dönüştürücü"]
-    INV --> RPI["Raspberry Pi 4<br/>DualControl.py"]
+    INV --> RPI["Raspberry Pi 4<br/>raspberry/dual_control.py"]
     PH["Analog pH sensörü"] --> MCU["Arduino Mega 2560"]
     TURB["Analog bulanıklık sensörü"] --> MCU
     TEMP["DS18B20"] --> MCU
@@ -41,17 +41,15 @@ Rapor ile bu depodaki Arduino taslağı aynı saha varyantını temsil etmiyor o
 
 | Yol | Sorumluluk |
 | --- | --- |
-| `DualControl.py` | Raspberry Pi üzerindeki RC/bilgisayar kontrol köprüsü |
-| `sketch_sep15a.ino` | Arduino sensör okuma, motor komutları ve watchdog |
-| `xslx_logger.py` | Geriye dönük adı korunan yer istasyonu logger'ı |
-| `telemetry.py` | Yalnız klavye ile uzaktan kontrol |
-| `keyboard.py` | Klavye kontrolü ve Arduino tanılama satırı izleme |
-| `xslx_to_kml.py` | Excel ölçümlerini üç KML katmanına dönüştürme |
+| `raspberry/` | Raspberry Pi RC/bilgisayar kontrol köprüsü ve platform bağımlılıkları |
+| `pc/` | Logger, klavye kontrolü, tanılama ve KML uygulamaları |
+| `arduino/` | Arduino IDE uyumlu firmware ve kütüphane listesi |
 | `usv_monitoring/` | Test edilebilir yapılandırma, protokol, kontrol, SBUS, kayıt ve KML modülleri |
 | `tests/` | Donanımsız otomatik testler |
 | `docs/` | Mimari, saha işletimi ve rapor incelemesi |
+| Kökteki eski `.py` dosyaları | Önceki saha komutlarını koruyan uyumluluk başlatıcıları |
 
-Eski dosya adlarındaki `xslx` yazımı, saha komutlarını kırmamak için korunmuştur.
+Gerçek uygulamalar platform klasörlerindedir. Eski dosya adlarındaki `xslx` yazımı ve kök başlatıcıları, saha komutlarını kırmamak için korunmuştur.
 
 ## Kurulum
 
@@ -91,32 +89,36 @@ export USV_GROUND_PORT=/dev/tty.usbserial-0001
 Raspberry Pi kontrol köprüsü:
 
 ```bash
-python DualControl.py
+python -m raspberry.dual_control
 ```
+
+Eski `python DualControl.py` komutu da aynı uygulamayı başlatır.
 
 Yer istasyonu logger ve klavye kontrolü:
 
 ```bash
-python xslx_logger.py --port /dev/tty.usbserial-0001 --output all_sensors.xlsx
+python -m pc.xlsx_logger --port /dev/tty.usbserial-0001 --output all_sensors.xlsx
 ```
 
 Grafik ortamı olmayan bir sistemde logger:
 
 ```bash
-python xslx_logger.py --no-keyboard
+python -m pc.xlsx_logger --no-keyboard
 ```
 
 Yalnız uzaktan klavye kontrolü:
 
 ```bash
-python telemetry.py
+python -m pc.telemetry
 ```
 
 KML üretimi:
 
 ```bash
-python xslx_to_kml.py --input all_sensors.xlsx --output-dir maps
+python -m pc.xlsx_to_kml --input all_sensors.xlsx --output-dir maps
 ```
+
+Arduino IDE ile [water_quality_usv.ino](arduino/water_quality_usv/water_quality_usv.ino) dosyasını açın.
 
 ## Desteklenen telemetri formatları
 

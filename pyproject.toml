@@ -23,13 +23,13 @@ dev = [
 ]
 
 [project.scripts]
-usv-dual-control = "DualControl:main"
-usv-logger = "xslx_logger:main"
-usv-kml = "xslx_to_kml:main"
-usv-telemetry = "telemetry:main"
+usv-dual-control = "raspberry.dual_control:main"
+usv-logger = "pc.xlsx_logger:main"
+usv-kml = "pc.xlsx_to_kml:main"
+usv-telemetry = "pc.telemetry:main"
 
 [tool.setuptools]
-packages = ["usv_monitoring"]
+packages = ["usv_monitoring", "raspberry", "pc"]
 py-modules = ["DualControl", "keyboard", "telemetry", "xslx_logger", "xslx_to_kml"]
 
 [tool.pytest.ini_options]

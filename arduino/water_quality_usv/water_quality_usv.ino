@@ -1,3 +1,4 @@
+// Arduino firmware for the water-quality USV.
 #include <OneWire.h>
 #include <DallasTemperature.h>
 

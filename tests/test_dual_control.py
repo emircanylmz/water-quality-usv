@@ -1,4 +1,4 @@
-from DualControl import DualControlSystem
+from raspberry.dual_control import DualControlSystem
 
 
 class FakeSerial:

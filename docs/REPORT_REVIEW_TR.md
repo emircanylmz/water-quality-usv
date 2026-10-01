@@ -17,7 +17,7 @@
 
 | Konu | Raporda | Depodaki kaynakta | Gereken işlem |
 | --- | --- | --- | --- |
-| GPS | NEO-6M ve `TinyGPSPlus`; Arduino GPS okuyor | `sketch_sep15a.ino` içinde GPS kodu yok | Çalışan saha firmware'ini ayrıca arşivle veya raporu mevcut taslağa göre düzelt. |
+| GPS | NEO-6M ve `TinyGPSPlus`; Arduino GPS okuyor | `arduino/water_quality_usv/water_quality_usv.ino` içinde GPS kodu yok | Çalışan saha firmware'ini ayrıca arşivle veya raporu mevcut taslağa göre düzelt. |
 | Seri paket | `LAT=...,LON=...,PH=...,TURB=...,STATUS=...,TEMP=...` | Arduino `PH:...,CAL:...,TURB:...,TEMP:...`; eski logger `DATA,...` bekliyordu | Logger iki GPS'li biçimi de destekleyecek şekilde düzeltildi; GPS'siz taslak tam kayıt üretemez. |
 | Motor elektroniği | SimonK 30A ESC, `Servo.writeMicroseconds()` | `ENA/ENB`, `IN1..IN4`, `digitalWrite/analogWrite` | Gerçek donanım varyantını belirle; yanlış firmware motor elektroniğine yüklenmemeli. |
 | Sıcaklık pini | Şemada/pin açıklamasında net değil | OneWire `D1` | Mega TX0 çakışmasını kablo üzerinde doğrula. |

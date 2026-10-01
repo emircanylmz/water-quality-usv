@@ -36,9 +36,9 @@ Linux üzerinde değişken `/dev/ttyUSB*` adları yerine mümkünse `/dev/serial
 
 1. Arduino ve motor gücü kapalıyken yer bilgisayarı ile telemetri portunu doğrulayın.
 2. Raspberry Pi'de yapılandırmayı yükleyin.
-3. `python DualControl.py` komutunu çalıştırın.
+3. `python -m raspberry.dual_control` komutunu çalıştırın.
 4. Üç seri bağlantının doğru port adıyla açıldığını kontrol edin.
-5. Yer bilgisayarında `python xslx_logger.py` komutunu çalıştırın.
+5. Yer bilgisayarında `python -m pc.xlsx_logger` komutunu çalıştırın.
 6. Arduino gücünü verin; ilk telemetri satırını ve Excel satır sayısını doğrulayın.
 7. Araç sabitken bilgisayar modu durdurma davranışını test edin.
 8. RC moduna geçin; mod değişiminde motorların durduğunu doğrulayın.
@@ -81,7 +81,7 @@ Her saha oturumundan sonra:
 - KML'i ayrı bir çıktı dizininde üretin.
 
 ```bash
-python xslx_to_kml.py --input all_sensors.xlsx --output-dir maps/session-001
+python -m pc.xlsx_to_kml --input all_sensors.xlsx --output-dir maps/session-001
 ```
 
 ## Donanım bağlamadan test

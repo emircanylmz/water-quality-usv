@@ -4,7 +4,14 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCUMENTS = [ROOT / "README.md", ROOT / "README.en.md", *sorted((ROOT / "docs").glob("*.md"))]
+DOCUMENTS = [
+    ROOT / "README.md",
+    ROOT / "README.en.md",
+    ROOT / "raspberry" / "README.md",
+    ROOT / "pc" / "README.md",
+    ROOT / "arduino" / "README.md",
+    *sorted((ROOT / "docs").glob("*.md")),
+]
 
 
 @pytest.mark.parametrize("document", DOCUMENTS, ids=lambda path: path.name)

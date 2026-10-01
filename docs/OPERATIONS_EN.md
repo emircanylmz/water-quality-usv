@@ -36,9 +36,9 @@ On Linux, prefer stable `/dev/serial/by-id/...` paths over changing `/dev/ttyUSB
 
 1. With Arduino and motor power off, identify the ground telemetry port.
 2. Load configuration on the Raspberry Pi.
-3. Run `python DualControl.py`.
+3. Run `python -m raspberry.dual_control`.
 4. Confirm that all three serial links open with the expected device names.
-5. Run `python xslx_logger.py` on the ground computer.
+5. Run `python -m pc.xlsx_logger` on the ground computer.
 6. Power Arduino and verify the first telemetry line and Excel row count.
 7. With the vessel restrained, test the computer-mode stop behavior.
 8. Enter RC mode and verify that motors stop during the transition.
@@ -81,7 +81,7 @@ After each field session:
 - Generate KML in a separate output directory.
 
 ```bash
-python xslx_to_kml.py --input all_sensors.xlsx --output-dir maps/session-001
+python -m pc.xlsx_to_kml --input all_sensors.xlsx --output-dir maps/session-001
 ```
 
 ## Hardware-independent verification

@@ -2,7 +2,7 @@
 
 [Türkçe](ARCHITECTURE_TR.md) | [Main README](../README.en.md)
 
-This refactor keeps the proven field entry points while separating hardware-independent logic into small modules. `DualControl.py`, `xslx_logger.py`, `telemetry.py`, `keyboard.py`, and `xslx_to_kml.py` retain their original command names.
+This refactor separates Raspberry Pi, PC, and Arduino applications into platform directories while preserving field entry points. Root-level `DualControl.py`, `xslx_logger.py`, `telemetry.py`, `keyboard.py`, and `xslx_to_kml.py` are compatibility launchers only.
 
 ## Extracted classes and functions
 
@@ -17,7 +17,7 @@ This refactor keeps the proven field entry points while separating hardware-inde
 | `ExcelMeasurementStore` | `usv_monitoring/storage.py` | Loads old records, appends new ones, and atomically replaces XLSX output. |
 | `KeyboardCommandController` | `usv_monitoring/keyboard_control.py` | Reuses the `pynput` lifecycle in logger and control-only clients. |
 | `generate_kml_maps()` | `usv_monitoring/kml.py` | Separates colors, geographic geometry, and XML generation from the CLI. |
-| `DualControlSystem` | `DualControl.py` | Orchestrates hardware connections, threads, and system lifecycle. |
+| `DualControlSystem` | `raspberry/dual_control.py` | Orchestrates hardware connections, threads, and system lifecycle. |
 
 The boundary is intentionally conservative: the five field scripts were not replaced with a new framework. Only decisions that require testing were extracted.
 
@@ -56,15 +56,15 @@ The report describes SimonK ESCs controlled through `Servo`, while the repositor
 ```mermaid
 flowchart TB
     subgraph ArduinoLayer["Arduino layer"]
-        Sketch["sketch_sep15a.ino"] --> SensorRead["Sensor sampling and calibration"]
+        Sketch["arduino/water_quality_usv/<br/>water_quality_usv.ino"] --> SensorRead["Sensor sampling and calibration"]
         Sketch --> MotorDrive["Motor commands and watchdog"]
     end
     subgraph PiLayer["Raspberry Pi layer"]
-        Dual["DualControlSystem"] --> SBus["decode_sbus_frame"]
+        Dual["raspberry/dual_control.py<br/>DualControlSystem"] --> SBus["decode_sbus_frame"]
         Dual --> Decision["select_control_mode<br/>command_from_channels"]
     end
     subgraph GroundLayer["Ground-computer layer"]
-        Logger["xslx_logger.py"] --> Protocol["parse_measurement_line"]
+        Logger["pc/xlsx_logger.py"] --> Protocol["parse_measurement_line"]
         Protocol --> Store["ExcelMeasurementStore"] --> Maps["generate_kml_maps"]
     end
     ArduinoLayer <-->|"command and sensor serial link"| PiLayer

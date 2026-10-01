@@ -2,7 +2,7 @@
 
 [English](ARCHITECTURE_EN.md) | [Ana README](../README.md)
 
-Bu düzenleme, çalışan saha giriş noktalarını korurken donanımdan bağımsız mantığı küçük modüllere ayırır. `DualControl.py`, `xslx_logger.py`, `telemetry.py`, `keyboard.py` ve `xslx_to_kml.py` komutları aynı adlarla kalmıştır.
+Bu düzenleme; Raspberry Pi, PC ve Arduino uygulamalarını ayrı klasörlere taşırken çalışan saha giriş noktalarını korur. Kökteki `DualControl.py`, `xslx_logger.py`, `telemetry.py`, `keyboard.py` ve `xslx_to_kml.py` dosyaları yalnız geriye dönük uyumluluk başlatıcılarıdır.
 
 ## Ayrılan sınıflar ve fonksiyonlar
 
@@ -17,7 +17,7 @@ Bu düzenleme, çalışan saha giriş noktalarını korurken donanımdan bağım
 | `ExcelMeasurementStore` | `usv_monitoring/storage.py` | Eski kayıtları yükler, yeni kayıtları ekler ve atomik XLSX değişimi yapar. |
 | `KeyboardCommandController` | `usv_monitoring/keyboard_control.py` | `pynput` yaşam döngüsünü logger ve yalnız-kontrol uygulamalarında tekrar kullanır. |
 | `generate_kml_maps()` | `usv_monitoring/kml.py` | Renk, coğrafi kare ve XML üretimini komut satırı betiğinden ayırır. |
-| `DualControlSystem` | `DualControl.py` | Donanım bağlantıları, iş parçacıkları ve sistem yaşam döngüsünün orkestratörüdür. |
+| `DualControlSystem` | `raspberry/dual_control.py` | Donanım bağlantıları, iş parçacıkları ve sistem yaşam döngüsünün orkestratörüdür. |
 
 Bu ayrımın sınırı bilinçlidir: beş ayrı çalıştırma betiği bir anda yeni bir framework'e dönüştürülmedi. Saha komutları ve varsayılanlar değişmeden, yalnız test edilmesi gereken karar mantığı ayrıldı.
 
@@ -62,14 +62,14 @@ flowchart LR
 
 **Doğrulanması gereken kritik nokta:** Arduino Mega'da `D1`, `Serial` TX0 işlevidir. Mevcut taslak hem `Serial` hem OneWire için `D1` kullanıyor. Çalışan saha düzeninde farklı seri port, farklı kart veya farklı sensör pini kullanılıyorsa kaynak kod ve kablolama birlikte güncellenmelidir. Bu düzenleme gerçek kablo bilgisi olmadan pini değiştirmedi.
 
-Rapor SimonK ESC ve `Servo` kütüphanesini anlatırken depo taslağı `ENA/ENB` ve `IN1..IN4` pinleriyle bir motor sürücü arayüzü kullanıyor. `sketch_sep15a.ino` yüklenmeden önce hangi motor elektroniğinin bağlı olduğu kesinleştirilmelidir.
+Rapor SimonK ESC ve `Servo` kütüphanesini anlatırken depo taslağı `ENA/ENB` ve `IN1..IN4` pinleriyle bir motor sürücü arayüzü kullanıyor. `arduino/water_quality_usv/water_quality_usv.ino` yüklenmeden önce hangi motor elektroniğinin bağlı olduğu kesinleştirilmelidir.
 
 ## 2. Yazılım dağıtımı
 
 ```mermaid
 flowchart TB
     subgraph ArduinoLayer["Arduino katmanı"]
-        Sketch["sketch_sep15a.ino"]
+        Sketch["arduino/water_quality_usv/<br/>water_quality_usv.ino"]
         SensorRead["Sensör örnekleme ve kalibrasyon"]
         MotorDrive["Motor komutları ve watchdog"]
         Sketch --> SensorRead
@@ -77,7 +77,7 @@ flowchart TB
     end
 
     subgraph PiLayer["Raspberry Pi katmanı"]
-        Dual["DualControlSystem"]
+        Dual["raspberry/dual_control.py<br/>DualControlSystem"]
         SBus["decode_sbus_frame"]
         Decision["select_control_mode<br/>command_from_channels"]
         Dual --> SBus
@@ -85,7 +85,7 @@ flowchart TB
     end
 
     subgraph GroundLayer["Yer bilgisayarı katmanı"]
-        Logger["xslx_logger.py"]
+        Logger["pc/xlsx_logger.py"]
         Protocol["parse_measurement_line"]
         Store["ExcelMeasurementStore"]
         Maps["generate_kml_maps"]

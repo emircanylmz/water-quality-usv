@@ -17,7 +17,7 @@ Reviewed report: **Unmanned Surface Vehicle for Water-Quality Analysis**, 40 PDF
 
 | Topic | Report | Repository source | Required action |
 | --- | --- | --- | --- |
-| GPS | NEO-6M and `TinyGPSPlus`; Arduino reads GPS | No GPS code in `sketch_sep15a.ino` | Archive the deployed firmware or revise the report to match the available sketch. |
+| GPS | NEO-6M and `TinyGPSPlus`; Arduino reads GPS | No GPS code in `arduino/water_quality_usv/water_quality_usv.ino` | Archive the deployed firmware or revise the report to match the available sketch. |
 | Serial packet | `LAT=...,LON=...,PH=...,TURB=...,STATUS=...,TEMP=...` | Arduino emits `PH:...,CAL:...,TURB:...,TEMP:...`; old logger expected `DATA,...` | Logger now accepts both geo-referenced formats; the GPS-free sketch cannot create a complete record. |
 | Motor electronics | SimonK 30A ESC and `Servo.writeMicroseconds()` | `ENA/ENB`, `IN1..IN4`, `digitalWrite/analogWrite` | Identify the physical variant; do not flash incompatible motor firmware. |
 | Temperature pin | Not made explicit in the report | OneWire on `D1` | Verify the Mega TX0 conflict against physical wiring. |

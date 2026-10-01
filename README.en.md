@@ -11,7 +11,7 @@ This project is an unmanned surface vehicle prototype that associates pH, turbid
 ```mermaid
 flowchart LR
     RC["RC transmitter and X8R"] --> INV["SBUS inverter and 5 V - 3.3 V level shifter"]
-    INV --> RPI["Raspberry Pi 4<br/>DualControl.py"]
+    INV --> RPI["Raspberry Pi 4<br/>raspberry/dual_control.py"]
     PH["Analog pH sensor"] --> MCU["Arduino Mega 2560"]
     TURB["Analog turbidity sensor"] --> MCU
     TEMP["DS18B20"] --> MCU
@@ -41,17 +41,15 @@ The report and the Arduino sketch in this repository may describe different fiel
 
 | Path | Responsibility |
 | --- | --- |
-| `DualControl.py` | Raspberry Pi RC/computer control bridge |
-| `sketch_sep15a.ino` | Arduino sensor reading, motor commands, and watchdog |
-| `xslx_logger.py` | Ground-station logger; historical filename retained |
-| `telemetry.py` | Keyboard-only remote control |
-| `keyboard.py` | Keyboard control and Arduino diagnostic monitoring |
-| `xslx_to_kml.py` | Converts the measurement workbook into three KML layers |
+| `raspberry/` | Raspberry Pi RC/computer bridge and platform dependencies |
+| `pc/` | Logger, keyboard control, diagnostics, and KML applications |
+| `arduino/` | Arduino IDE-compatible firmware and library list |
 | `usv_monitoring/` | Testable configuration, protocol, control, SBUS, storage, and KML modules |
 | `tests/` | Hardware-independent automated tests |
 | `docs/` | Architecture, field operations, and report review |
+| Legacy root `.py` files | Compatibility launchers for existing field commands |
 
-The historical `xslx` filename typo is retained to avoid breaking field commands.
+Implementations live in platform directories. The historical `xslx` typo and root launchers are retained to avoid breaking field commands.
 
 ## Installation
 
@@ -91,32 +89,36 @@ The application does not load `.env` automatically; load it through the shell, s
 Raspberry Pi control bridge:
 
 ```bash
-python DualControl.py
+python -m raspberry.dual_control
 ```
+
+The legacy `python DualControl.py` command starts the same implementation.
 
 Ground-station logger and keyboard control:
 
 ```bash
-python xslx_logger.py --port /dev/tty.usbserial-0001 --output all_sensors.xlsx
+python -m pc.xlsx_logger --port /dev/tty.usbserial-0001 --output all_sensors.xlsx
 ```
 
 Logger on a headless system:
 
 ```bash
-python xslx_logger.py --no-keyboard
+python -m pc.xlsx_logger --no-keyboard
 ```
 
 Keyboard-only control:
 
 ```bash
-python telemetry.py
+python -m pc.telemetry
 ```
 
 KML generation:
 
 ```bash
-python xslx_to_kml.py --input all_sensors.xlsx --output-dir maps
+python -m pc.xlsx_to_kml --input all_sensors.xlsx --output-dir maps
 ```
+
+Open [water_quality_usv.ino](arduino/water_quality_usv/water_quality_usv.ino) with Arduino IDE.
 
 ## Supported telemetry formats
 
