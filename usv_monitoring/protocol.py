@@ -156,4 +156,7 @@ def parse_tagged_sensor_line(line: str) -> Dict[str, str]:
 
 def looks_like_arduino_telemetry(payload: bytes) -> bool:
     text = payload.decode("utf-8", errors="ignore").upper()
-    return any(marker in text for marker in ("PH:", "PH=", "DATA,", "TEMP:", "TEMP="))
+    return any(
+        marker in text
+        for marker in ("GPS_NO_FIX", "PH:", "PH=", "DATA,", "TEMP:", "TEMP=")
+    )

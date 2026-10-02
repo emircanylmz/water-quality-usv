@@ -17,8 +17,8 @@
 
 | Konu | Raporda | Depodaki kaynakta | Gereken işlem |
 | --- | --- | --- | --- |
-| GPS | NEO-6M ve `TinyGPSPlus`; Arduino GPS okuyor | `arduino/water_quality_usv/water_quality_usv.ino` içinde GPS kodu yok | Çalışan saha firmware'ini ayrıca arşivle veya raporu mevcut taslağa göre düzelt. |
-| Seri paket | `LAT=...,LON=...,PH=...,TURB=...,STATUS=...,TEMP=...` | Arduino `PH:...,CAL:...,TURB:...,TEMP:...`; eski logger `DATA,...` bekliyordu | Logger iki GPS'li biçimi de destekleyecek şekilde düzeltildi; GPS'siz taslak tam kayıt üretemez. |
+| GPS | NEO-6M ve `TinyGPSPlus`; Arduino GPS okuyor | Arduino Mega `Serial1` üzerinden NMEA verisini `TinyGPSPlus` ile ayrıştırıyor | Uyumlu; GPS TX bağlantısı `D19/RX1` olarak belgelendi. |
+| Seri paket | `LAT=...,LON=...,PH=...,TURB=...,STATUS=...,TEMP=...` | Arduino aynı koordinatlı paketi üretiyor; logger ayrıca eski `DATA,...` biçimini de kabul ediyor | Uyumlu; GPS fix yokken `GPS_NO_FIX` gönderiliyor. |
 | Motor elektroniği | SimonK 30A ESC, `Servo.writeMicroseconds()` | `ENA/ENB`, `IN1..IN4`, `digitalWrite/analogWrite` | Gerçek donanım varyantını belirle; yanlış firmware motor elektroniğine yüklenmemeli. |
 | Sıcaklık pini | Şemada/pin açıklamasında net değil | OneWire `D1` | Mega TX0 çakışmasını kablo üzerinde doğrula. |
 | Kayıt düzeni | pH, bulanıklık ve sıcaklık ayrı dosyalarda deniyor | Tek `all_sensors.xlsx` kullanılıyor | Raporu birleşik kayıt şemasına göre güncellemek daha tutarlı. |
@@ -29,7 +29,7 @@
 ## Bilimsel yöntem ve veri kalitesi sorunları
 
 1. **Kalibrasyon tekrarlanabilir değil.** Kullanılan pH tamponlarının değerleri, sıcaklığı, kalibrasyon tarihi, eğim/ofset katsayıları ve referans cihaz belirtilmiyor.
-2. **İki pH formülü var.** Depo taslağı hem `7 + ((2.5 - V) / 0.18)` hem `-5.70V + 21.34` hesaplıyor. Hangisinin rapor sonuçlarını ürettiği açıklanmalı.
+2. **pH kalibrasyon formülü doğrulanmalı.** Depo taslağı `7 + ((2.5 - V) / 0.18)` kullanırken rapordaki örnek kod `-5.70V + 21.34` kullanıyor. Saha kalibrasyonundan elde edilen bağıntı seçilmeli ve tampon ölçümleriyle belgelenmeli.
 3. **Bulanıklığın birimi yok.** Rapor ve Excel örneğinde `19`, `32`, `96` gibi değerler var; bunların ham ADC, yüzde veya NTU olduğu belirtilmiyor.
 4. **CLEAR/CLOUDY/DIRTY sınıfları tanımsız.** Eşikler, birimler ve bilimsel dayanak verilmemiş.
 5. **Testler yalnız nitel anlatılmış.** Referans ölçüm, örnek sayısı, ortalama hata, standart sapma, tekrar edilebilirlik ve güven aralığı tablosu yok.

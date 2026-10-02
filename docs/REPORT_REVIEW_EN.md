@@ -17,8 +17,8 @@ Reviewed report: **Unmanned Surface Vehicle for Water-Quality Analysis**, 40 PDF
 
 | Topic | Report | Repository source | Required action |
 | --- | --- | --- | --- |
-| GPS | NEO-6M and `TinyGPSPlus`; Arduino reads GPS | No GPS code in `arduino/water_quality_usv/water_quality_usv.ino` | Archive the deployed firmware or revise the report to match the available sketch. |
-| Serial packet | `LAT=...,LON=...,PH=...,TURB=...,STATUS=...,TEMP=...` | Arduino emits `PH:...,CAL:...,TURB:...,TEMP:...`; old logger expected `DATA,...` | Logger now accepts both geo-referenced formats; the GPS-free sketch cannot create a complete record. |
+| GPS | NEO-6M and `TinyGPSPlus`; Arduino reads GPS | Arduino Mega parses NMEA from `Serial1` with `TinyGPSPlus` | Aligned; GPS TX wiring is documented as `D19/RX1`. |
+| Serial packet | `LAT=...,LON=...,PH=...,TURB=...,STATUS=...,TEMP=...` | Arduino emits the same geo-referenced packet; the logger also accepts legacy `DATA,...` | Aligned; Arduino emits `GPS_NO_FIX` until a fix is available. |
 | Motor electronics | SimonK 30A ESC and `Servo.writeMicroseconds()` | `ENA/ENB`, `IN1..IN4`, `digitalWrite/analogWrite` | Identify the physical variant; do not flash incompatible motor firmware. |
 | Temperature pin | Not made explicit in the report | OneWire on `D1` | Verify the Mega TX0 conflict against physical wiring. |
 | Storage layout | Claims separate pH, turbidity, and temperature files | Uses one `all_sensors.xlsx` | Revise the report to document the combined schema. |
@@ -29,7 +29,7 @@ Reviewed report: **Unmanned Surface Vehicle for Water-Quality Analysis**, 40 PDF
 ## Scientific-method and data-quality gaps
 
 1. **Calibration is not reproducible.** Buffer values, temperature, date, slope/offset, and the reference instrument are absent.
-2. **Two pH formulas exist.** The repository computes both `7 + ((2.5 - V) / 0.18)` and `-5.70V + 21.34`; the report must identify the formula used for results.
+2. **The pH calibration formula needs verification.** The repository uses `7 + ((2.5 - V) / 0.18)`, while the report's example code uses `-5.70V + 21.34`. Select the relationship obtained from field calibration and document it with buffer measurements.
 3. **Turbidity has no unit.** Values such as `19`, `32`, and `96` are not identified as raw ADC, percent, or NTU.
 4. **CLEAR/CLOUDY/DIRTY is undefined.** Thresholds, units, and scientific basis are missing.
 5. **Tests are qualitative only.** There is no reference measurement, sample count, mean error, standard deviation, repeatability, or confidence interval.

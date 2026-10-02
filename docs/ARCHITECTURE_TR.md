@@ -32,7 +32,7 @@ flowchart LR
         PH["pH sensörü"] -->|"A0"| ARD["Arduino Mega 2560"]
         TURB["Bulanıklık sensörü"] -->|"A1"| ARD
         TEMP["DS18B20"] -->|"Depo taslağında D1"| ARD
-        GPS["NEO-6M GPS<br/>rapordaki saha sürümü"] -.-> ARD
+        GPS["NEO-6M GPS"] -->|"TX -> D19/RX1<br/>Serial1 / 9600"| ARD
 
         RPI <-->|"USB seri / 9600"| ARD
         ARD --> MOTORIF["Motor arayüzü"]
@@ -55,12 +55,15 @@ flowchart LR
 | pH analog giriş | `A0` |
 | Bulanıklık analog giriş | `A1` |
 | DS18B20 OneWire | `D1` |
+| NEO-6M GPS TX | `D19/RX1` (`Serial1`) |
 | Motor A enable | `D9` |
 | Motor B enable | `D3` |
 | Motor A yön | `D7`, `D6` |
 | Motor B yön | `D5`, `D4` |
 
 **Doğrulanması gereken kritik nokta:** Arduino Mega'da `D1`, `Serial` TX0 işlevidir. Mevcut taslak hem `Serial` hem OneWire için `D1` kullanıyor. Çalışan saha düzeninde farklı seri port, farklı kart veya farklı sensör pini kullanılıyorsa kaynak kod ve kablolama birlikte güncellenmelidir. Bu düzenleme gerçek kablo bilgisi olmadan pini değiştirmedi.
+
+NEO-6M, Raspberry Pi ile çift yönlü ana `Serial` hattından ayrılmış olan Mega `Serial1` üzerinde çalışır. Yalnız GPS `TX -> D19/RX1` ve ortak GND gerekir; `D18/TX1` kullanılmaz. GPS kartının besleme gerilimi kendi veri sayfasına göre seçilmelidir.
 
 Rapor SimonK ESC ve `Servo` kütüphanesini anlatırken depo taslağı `ENA/ENB` ve `IN1..IN4` pinleriyle bir motor sürücü arayüzü kullanıyor. `arduino/water_quality_usv/water_quality_usv.ino` yüklenmeden önce hangi motor elektroniğinin bağlı olduğu kesinleştirilmelidir.
 
@@ -71,8 +74,10 @@ flowchart TB
     subgraph ArduinoLayer["Arduino katmanı"]
         Sketch["arduino/water_quality_usv/<br/>water_quality_usv.ino"]
         SensorRead["Sensör örnekleme ve kalibrasyon"]
+        GPSRead["TinyGPSPlus NMEA ayrıştırma"]
         MotorDrive["Motor komutları ve watchdog"]
         Sketch --> SensorRead
+        Sketch --> GPSRead
         Sketch --> MotorDrive
     end
 
@@ -134,7 +139,7 @@ sequenceDiagram
         Pi-->>PC: Bilgisayar komutu yok sayılır
     end
     Arduino->>Sensors: Ölçüm al
-    Sensors-->>Arduino: pH, bulanıklık, sıcaklık ve saha sürümünde GPS
+    Sensors-->>Arduino: pH, bulanıklık, sıcaklık ve GPS konumu
     Arduino->>Pi: Telemetri satırı
     Pi->>Radio: Satırı ilet
     Radio->>PC: Telemetri satırı
@@ -145,9 +150,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    START(["Başlat"]) --> INIT["Pinleri ve sensörleri başlat<br/>motorları durdur"]
+    START(["Başlat"]) --> INIT["Pinleri, sensörleri ve Serial1 GPS'i başlat<br/>motorları durdur"]
     INIT --> LOOP{"Ana döngü"}
-    LOOP --> RX{"Seri komut var mı?"}
+    LOOP --> GPS["NMEA baytlarını TinyGPSPlus'a aktar"]
+    GPS --> RX{"Seri komut var mı?"}
     RX -->|Evet| DRAIN["Tampondaki tüm komutları işle"]
     RX -->|Hayır| WATCH
     DRAIN --> WATCH{"Aktif hareket komutu<br/>2 saniyeyi aştı mı?"}
@@ -155,12 +161,15 @@ flowchart TD
     WATCH -->|Hayır| DUE
     STOP --> DUE{"1 saniyelik ölçüm zamanı geldi mi?"}
     DUE -->|Hayır| LOOP
-    DUE -->|Evet| SAMPLE["pH örnekle<br/>bulanıklığı oku<br/>DS18B20 sıcaklığını iste"]
-    SAMPLE --> SEND["Makine ve tanılama satırlarını gönder"]
+    DUE -->|Evet| SAMPLE["pH ve bulanıklığı örnekle<br/>hazır DS18B20 sonucunu oku"]
+    SAMPLE --> FIX{"GPS fix geçerli ve güncel mi?"}
+    FIX -->|Hayır| NOFIX["GPS_NO_FIX gönder"]
+    NOFIX --> LOOP
+    FIX -->|Evet| SEND["LAT/LON/PH/TURB/STATUS/TEMP gönder"]
     SEND --> LOOP
 ```
 
-Watchdog, seri bağlantı kesildiğinde son hareketin sonsuza kadar sürmesini önler. DS18B20 sıcaklık isteği senkron çalışıyorsa ana döngüyü yüzlerce milisaniye engelleyebilir; gerçek durma gecikmesi saha testinde ölçülmelidir.
+Watchdog, seri bağlantı kesildiğinde son hareketin sonsuza kadar sürmesini önler. DS18B20 dönüşümü GPS UART tamponunu engellememek için asenkron başlatılır; NMEA baytları ana döngüde sürekli tüketilir. Gerçek durma gecikmesi yine saha testinde ölçülmelidir.
 
 ## 6. Yer istasyonu kayıt akışı
 

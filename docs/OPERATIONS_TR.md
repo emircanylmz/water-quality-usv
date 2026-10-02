@@ -11,6 +11,7 @@ Bu belge yazılım kullanımını açıklar; elektrik, batarya, teknecilik veya 
 - Li-Po batarya, sigorta, ESC/motor sürücü akım sınırı ve kablo kesitini kontrol edin.
 - Arduino modelini ve motor arayüzünü doğrulayın. Rapor ESC/Servo, depo taslağı yön/enable pinleri kullanıyor.
 - Arduino Mega kullanılıyorsa `D1` üzerindeki DS18B20 ile `Serial` TX0 çakışmasını fiziksel kablo üzerinden kontrol edin.
+- NEO-6M `TX` hattının Mega `D19/RX1` pinine bağlı olduğunu, ortak GND'yi ve GPS kartının doğru gerilimle beslendiğini doğrulayın.
 - Raspberry Pi UART girişine doğrudan 5 V SBUS bağlamayın; rapordaki tersleyici ve seviye dönüştürücüyü doğrulayın.
 - Kuru testte `w`, `a`, `s`, `d`, tuş bırakma ve güç/telemetri kesintisi davranışlarını deneyin.
 
@@ -21,6 +22,7 @@ Bu belge yazılım kullanımını açıklar; elektrik, batarya, teknecilik veya 
 | X8R - Raspberry Pi | `/dev/ttyAMA0` | 100000 | SBUS |
 | Yer telemetri - Raspberry Pi | `/dev/ttyUSB0` | 57600 | Bilgisayar komutları ve sensör geri dönüşü |
 | Arduino - Raspberry Pi | `/dev/ttyUSB1` | 9600 | Motor komutları ve sensör satırları |
+| NEO-6M GPS - Arduino Mega `Serial1` | `D19/RX1` | 9600 | NMEA konum verisi; GPS TX tek yönlü bağlıdır |
 | Yer bilgisayarı telemetri | `/dev/tty.usbserial-0001` | 57600 | Kontrol ve veri kaydı |
 
 Varsayılan X8R seri biçimi, çalışan eski kodu korumak için `8N1` bırakılmıştır. Standart SBUS dönüştürücünüz `8E2` gerektiriyorsa:
@@ -39,11 +41,12 @@ Linux üzerinde değişken `/dev/ttyUSB*` adları yerine mümkünse `/dev/serial
 3. `python -m raspberry.dual_control` komutunu çalıştırın.
 4. Üç seri bağlantının doğru port adıyla açıldığını kontrol edin.
 5. Yer bilgisayarında `python -m pc.xlsx_logger` komutunu çalıştırın.
-6. Arduino gücünü verin; ilk telemetri satırını ve Excel satır sayısını doğrulayın.
-7. Araç sabitken bilgisayar modu durdurma davranışını test edin.
-8. RC moduna geçin; mod değişiminde motorların durduğunu doğrulayın.
-9. RC alıcısını kapatın; en geç SBUS zaman aşımı ve Arduino watchdog süresi içinde motorların durduğunu doğrulayın.
-10. Ancak bu kontrollerden sonra düşük güçte su testi yapın.
+6. Arduino gücünü verin; açık alanda `GPS_NO_FIX` satırının koordinatlı telemetri paketine dönüştüğünü doğrulayın.
+7. İlk koordinatlı telemetri satırını ve Excel satır sayısını doğrulayın.
+8. Araç sabitken bilgisayar modu durdurma davranışını test edin.
+9. RC moduna geçin; mod değişiminde motorların durduğunu doğrulayın.
+10. RC alıcısını kapatın; en geç SBUS zaman aşımı ve Arduino watchdog süresi içinde motorların durduğunu doğrulayın.
+11. Ancak bu kontrollerden sonra düşük güçte su testi yapın.
 
 ## Acil durumda
 

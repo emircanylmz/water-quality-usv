@@ -1,6 +1,12 @@
 // Arduino firmware for the water-quality USV.
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <TinyGPS++.h>
+
+// NEO-6M GPS: module TX -> Arduino Mega D19/RX1. D18/TX1 is not required.
+const unsigned long GPS_BAUD = 9600;
+const unsigned long GPS_FIX_MAX_AGE_MS = 5000;
+TinyGPSPlus gps;
 
 //pH Sensörü 
 const int pH_PIN = A0;
@@ -34,16 +40,35 @@ const int defaultPWM = 200;
 unsigned long lastSendTime = 0;  // Zaman kontrolü
 unsigned long lastCommandTime = 0;
 const unsigned long COMMAND_TIMEOUT_MS = 2000;
+const unsigned long MEASUREMENT_INTERVAL_MS = 1000;
 bool motorCommandActive = false;
+
+void readGpsData() {
+  while (Serial1.available() > 0) {
+    gps.encode(Serial1.read());
+  }
+}
+
+bool hasFreshGpsFix() {
+  return gps.location.isValid() && gps.location.age() <= GPS_FIX_MAX_AGE_MS;
+}
+
+const char* classifyTurbidity(int rawValue) {
+  return rawValue < turbidityThreshold ? "DIRTY" : "CLEAR";
+}
 
 void setup() {
   Serial.begin(9600);
+  Serial1.begin(GPS_BAUD);
 
   pinMode(ENA, OUTPUT); pinMode(ENB, OUTPUT);
   pinMode(IN1, OUTPUT); pinMode(IN2, OUTPUT);
   pinMode(IN3, OUTPUT); pinMode(IN4, OUTPUT);
 
   sensors.begin();
+  // A blocking DS18B20 conversion can overflow the GPS UART buffer.
+  sensors.setWaitForConversion(false);
+  sensors.requestTemperatures();
 
   motorA_stop();
   motorB_stop();
@@ -77,6 +102,9 @@ void handleMotorCommand(char cmd){
 }
 
 void loop() {
+  // NMEA verisini sürekli tüket; yalnız ölçüm anında okumak UART taşmasına yol açar.
+  readGpsData();
+
   //Motor Komut Okuma
   while (Serial.available() > 0) {
     char cmd = Serial.read();
@@ -89,40 +117,48 @@ void loop() {
   }
 
   // Veri Gönderme
-  if (millis() - lastSendTime >= 1000) {
+  if (millis() - lastSendTime >= MEASUREMENT_INTERVAL_MS) {
     lastSendTime = millis();
 
     //pH Ölçümü
     for (int i = 0; i < 10; i++) {
       buf[i] = analogRead(pH_PIN);
+      readGpsData();
       delay(5);
     }
     float avgValue = 0;
     for (int i = 0; i < 10; i++) avgValue += buf[i];
     float pHVol = (float)avgValue * 5.0 / 1024.0 / 10.0;
-    float phValue = -5.70 * pHVol + 21.34;  
+    float phValue = ph_formula(pHVol);
 
     //Turbidity Ölçümü
     int turbidityRaw = analogRead(TURBIDITY_PIN);
-    String turbidityState = (turbidityRaw < turbidityThreshold) ? "Kirli" : "Temiz";
+    const char* turbidityState = classifyTurbidity(turbidityRaw);
 
     //Sıcaklık Ölçümü
-    sensors.requestTemperatures();
     float temperature = sensors.getTempCByIndex(0);
+    sensors.requestTemperatures();
 
-    //Seri Gönderim Raspberry Pi'ye
-    Serial.print("PH:");
-    Serial.print(ph_formula(pHVol), 2);
-    Serial.print(",CAL:");
+    readGpsData();
+
+    // Yalnız geçerli ve güncel GPS fix'i olan ölçümler kayda gönderilir.
+    if (!hasFreshGpsFix()) {
+      Serial.println("GPS_NO_FIX");
+      return;
+    }
+
+    // Raporda tanımlanan makine tarafından okunabilir telemetri paketi.
+    Serial.print("LAT=");
+    Serial.print(gps.location.lat(), 6);
+    Serial.print(",LON=");
+    Serial.print(gps.location.lng(), 6);
+    Serial.print(",PH=");
     Serial.print(phValue, 2);
-    Serial.print(",TURB:");
+    Serial.print(",TURB=");
+    Serial.print(turbidityRaw);
+    Serial.print(",STATUS=");
     Serial.print(turbidityState);
-    Serial.print(",TEMP:");
+    Serial.print(",TEMP=");
     Serial.println(temperature, 2);
-
-    Serial.print("pH: "); Serial.print(ph_formula(pHVol),2);
-    Serial.print(" | Cal: "); Serial.print(phValue,2);
-    Serial.print(" | Su Durumu: "); Serial.print(turbidityState);
-    Serial.print(" | Sicaklik: "); Serial.println(temperature,2);
   }
 }

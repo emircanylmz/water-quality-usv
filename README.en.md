@@ -15,7 +15,7 @@ flowchart LR
     PH["Analog pH sensor"] --> MCU["Arduino Mega 2560"]
     TURB["Analog turbidity sensor"] --> MCU
     TEMP["DS18B20"] --> MCU
-    GPS["NEO-6M GPS<br/>field version described in the report"] -.-> MCU
+    GPS["NEO-6M GPS<br/>Serial1 / 9600 baud"] --> MCU
     MCU <-->|"9600 baud commands and sensor data"| RPI
     MCU --> DRIVE["Motor interface<br/>report: ESC, repository sketch: EN/IN pins"]
     DRIVE --> MOTORS["Left and right motors"]
@@ -24,7 +24,7 @@ flowchart LR
     GROUND <--> PC["Ground computer<br/>control, logging, and KML"]
 ```
 
-The report and the Arduino sketch in this repository may describe different field variants. The report includes GPS and ESC control, while the current sketch does not read GPS and uses direction/enable pins. Read the [architecture and discrepancy notes](docs/ARCHITECTURE_EN.md) before connecting hardware.
+The Arduino sketch reads NEO-6M GPS data over `Serial1` and adds coordinates to each measurement. The report uses ESC control, while the current sketch uses a different direction/enable-pin motor interface. Read the [architecture and discrepancy notes](docs/ARCHITECTURE_EN.md) before connecting hardware.
 
 ## Key features
 
@@ -41,7 +41,7 @@ The report and the Arduino sketch in this repository may describe different fiel
 - Samples the analog voltage of the pH sensor and converts it to pH through a calibration relationship.
 - Measures the analog output of the turbidity sensor and classifies water condition using defined thresholds.
 - Measures water temperature with a DS18B20 sensor over OneWire communication.
-- Adds coordinates from a NEO-6M GPS in the field version described by the report; the Arduino sketch currently in the repository does not read GPS.
+- Sends a valid, fresh NEO-6M GPS position in the same telemetry packet as each sensor measurement.
 - Uses SBUS channels from the X8R receiver for manual motion and control-mode selection.
 - Uses the Raspberry Pi to select between RC and ground-computer control and to bridge the Arduino and telemetry link.
 - Records measurements on the ground computer and generates KML map layers whose colors represent value ranges.
@@ -78,7 +78,7 @@ source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 ```
 
-The Arduino sketch requires `OneWire` and `DallasTemperature`. If the GPS/ESC field firmware described by the report is used, verify its additional `TinyGPSPlus` and `Servo` dependencies.
+The Arduino sketch requires `OneWire`, `DallasTemperature`, and `TinyGPSPlus`. If the report's ESC-based motor variant is used, verify the additional `Servo` dependency.
 
 ## Configuration
 

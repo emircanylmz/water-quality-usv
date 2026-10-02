@@ -1,6 +1,10 @@
 import pytest
 
-from usv_monitoring.protocol import TelemetryParseError, parse_measurement_line
+from usv_monitoring.protocol import (
+    TelemetryParseError,
+    looks_like_arduino_telemetry,
+    parse_measurement_line,
+)
 
 
 def test_parses_legacy_data_packet():
@@ -27,6 +31,10 @@ def test_parses_field_report_key_value_packet():
 def test_ignores_gps_status_and_diagnostic_lines():
     assert parse_measurement_line("GPS_NO_FIX") is None
     assert parse_measurement_line("PH:7.2,CAL:7.1,TURB:Temiz,TEMP:20") is None
+
+
+def test_gps_no_fix_identifies_arduino_during_port_detection():
+    assert looks_like_arduino_telemetry(b"GPS_NO_FIX\r\n")
 
 
 def test_rejects_incomplete_measurement_candidate():

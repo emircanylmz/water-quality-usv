@@ -31,7 +31,7 @@ flowchart LR
         PH["pH sensor"] -->|"A0"| ARD["Arduino Mega 2560"]
         TURB["Turbidity sensor"] -->|"A1"| ARD
         TEMP["DS18B20"] -->|"D1 in repository sketch"| ARD
-        GPS["NEO-6M GPS<br/>report field version"] -.-> ARD
+        GPS["NEO-6M GPS"] -->|"TX -> D19/RX1<br/>Serial1 / 9600"| ARD
         RPI <-->|"USB serial / 9600"| ARD
         ARD --> MOTORIF["Motor interface"]
         MOTORIF --> LEFT["Left motor"]
@@ -45,9 +45,11 @@ flowchart LR
     RADIO2 <--> PC["Ground computer"]
 ```
 
-Repository pin mapping: pH `A0`, turbidity `A1`, DS18B20 `D1`, motor enables `D9`/`D3`, and motor directions `D7`/`D6`/`D5`/`D4`.
+Repository pin mapping: pH `A0`, turbidity `A1`, DS18B20 `D1`, NEO-6M TX on `D19/RX1` (`Serial1`), motor enables `D9`/`D3`, and motor directions `D7`/`D6`/`D5`/`D4`.
 
 **Critical item to verify:** `D1` is TX0 on an Arduino Mega. The current sketch uses it for both `Serial` and OneWire. If the working field build uses another UART, board, or sensor pin, update source and wiring together. This refactor did not guess a physical pin.
+
+The NEO-6M runs on Mega `Serial1`, separate from the bidirectional main `Serial` link to Raspberry Pi. Only GPS `TX -> D19/RX1` and common GND are required; `D18/TX1` is unused. Select the GPS supply voltage from the exact board's data sheet.
 
 The report describes SimonK ESCs controlled through `Servo`, while the repository sketch uses `ENA/ENB` and `IN1..IN4`. Confirm the installed motor electronics before flashing the sketch.
 
@@ -57,6 +59,7 @@ The report describes SimonK ESCs controlled through `Servo`, while the repositor
 flowchart TB
     subgraph ArduinoLayer["Arduino layer"]
         Sketch["arduino/water_quality_usv/<br/>water_quality_usv.ino"] --> SensorRead["Sensor sampling and calibration"]
+        Sketch --> GPSRead["TinyGPSPlus NMEA parsing"]
         Sketch --> MotorDrive["Motor commands and watchdog"]
     end
     subgraph PiLayer["Raspberry Pi layer"]
@@ -109,7 +112,7 @@ sequenceDiagram
         Pi-->>PC: Ignore computer motion command
     end
     Arduino->>Sensors: Request measurements
-    Sensors-->>Arduino: pH, turbidity, temperature, and GPS in field firmware
+    Sensors-->>Arduino: pH, turbidity, temperature, and GPS position
     Arduino->>Pi: Telemetry line
     Pi->>Radio: Forward line
     Radio->>PC: Telemetry line
@@ -120,9 +123,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    START(["Start"]) --> INIT["Initialize pins and sensors<br/>stop motors"]
+    START(["Start"]) --> INIT["Initialize pins, sensors, and Serial1 GPS<br/>stop motors"]
     INIT --> LOOP{"Main loop"}
-    LOOP --> RX{"Serial command available?"}
+    LOOP --> GPS["Feed NMEA bytes to TinyGPSPlus"]
+    GPS --> RX{"Serial command available?"}
     RX -->|Yes| DRAIN["Process every buffered command"]
     RX -->|No| WATCH
     DRAIN --> WATCH{"Active motion older than 2 seconds?"}
@@ -130,12 +134,15 @@ flowchart TD
     WATCH -->|No| DUE
     STOP --> DUE{"One-second sample due?"}
     DUE -->|No| LOOP
-    DUE -->|Yes| SAMPLE["Sample pH and turbidity<br/>request DS18B20 temperature"]
-    SAMPLE --> SEND["Send machine and diagnostic lines"]
+    DUE -->|Yes| SAMPLE["Sample pH and turbidity<br/>read completed DS18B20 conversion"]
+    SAMPLE --> FIX{"GPS fix valid and fresh?"}
+    FIX -->|No| NOFIX["Send GPS_NO_FIX"]
+    NOFIX --> LOOP
+    FIX -->|Yes| SEND["Send LAT/LON/PH/TURB/STATUS/TEMP"]
     SEND --> LOOP
 ```
 
-The watchdog prevents indefinite motion after a serial-link loss. A synchronous DS18B20 request may block the loop for hundreds of milliseconds; measure actual stop latency on the physical build.
+The watchdog prevents indefinite motion after a serial-link loss. DS18B20 conversion is started asynchronously so it cannot block the GPS UART buffer, and the loop continuously consumes NMEA bytes. Actual stop latency still requires measurement on the physical build.
 
 ## 6. Ground-station logging
 

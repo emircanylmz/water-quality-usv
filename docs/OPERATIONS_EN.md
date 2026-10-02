@@ -11,6 +11,7 @@ This document explains software operation; it does not replace electrical, batte
 - Check the Li-Po battery, fuse, ESC/motor-driver current limit, and cable ratings.
 - Verify the Arduino model and motor interface. The report describes ESC/Servo control; the repository sketch uses direction/enable pins.
 - On an Arduino Mega, verify the physical conflict between DS18B20 on `D1` and `Serial` TX0.
+- Confirm NEO-6M `TX` is connected to Mega `D19/RX1`, grounds are common, and the GPS board uses its specified supply voltage.
 - Never connect 5 V SBUS directly to Raspberry Pi UART; verify the inverter and level shifter described by the report.
 - In a dry test, verify `w`, `a`, `s`, `d`, key release, and power/telemetry loss behavior.
 
@@ -21,6 +22,7 @@ This document explains software operation; it does not replace electrical, batte
 | X8R - Raspberry Pi | `/dev/ttyAMA0` | 100000 | SBUS |
 | Ground telemetry - Raspberry Pi | `/dev/ttyUSB0` | 57600 | Computer commands and returned sensor data |
 | Arduino - Raspberry Pi | `/dev/ttyUSB1` | 9600 | Motor commands and sensor lines |
+| NEO-6M GPS - Arduino Mega `Serial1` | `D19/RX1` | 9600 | NMEA position data; GPS TX is connected one-way |
 | Ground-computer telemetry | `/dev/tty.usbserial-0001` | 57600 | Control and logging |
 
 The default X8R framing remains `8N1` to preserve the proven script. If your standard SBUS adapter requires `8E2`:
@@ -39,11 +41,12 @@ On Linux, prefer stable `/dev/serial/by-id/...` paths over changing `/dev/ttyUSB
 3. Run `python -m raspberry.dual_control`.
 4. Confirm that all three serial links open with the expected device names.
 5. Run `python -m pc.xlsx_logger` on the ground computer.
-6. Power Arduino and verify the first telemetry line and Excel row count.
-7. With the vessel restrained, test the computer-mode stop behavior.
-8. Enter RC mode and verify that motors stop during the transition.
-9. Turn off the RC receiver and confirm stop within the SBUS timeout plus Arduino watchdog interval.
-10. Only then perform a low-power water test.
+6. Power Arduino and verify outdoors that `GPS_NO_FIX` changes to a geo-referenced telemetry packet.
+7. Verify the first geo-referenced telemetry line and Excel row count.
+8. With the vessel restrained, test the computer-mode stop behavior.
+9. Enter RC mode and verify that motors stop during the transition.
+10. Turn off the RC receiver and confirm stop within the SBUS timeout plus Arduino watchdog interval.
+11. Only then perform a low-power water test.
 
 ## Emergency response
 

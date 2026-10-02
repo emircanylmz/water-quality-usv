@@ -15,7 +15,7 @@ flowchart LR
     PH["Analog pH sensörü"] --> MCU["Arduino Mega 2560"]
     TURB["Analog bulanıklık sensörü"] --> MCU
     TEMP["DS18B20"] --> MCU
-    GPS["NEO-6M GPS<br/>rapordaki saha sürümü"] -.-> MCU
+    GPS["NEO-6M GPS<br/>Serial1 / 9600 baud"] --> MCU
     MCU <-->|"9600 baud komut ve sensör verisi"| RPI
     MCU --> DRIVE["Motor arayüzü<br/>rapor: ESC, depo taslağı: EN/IN pinleri"]
     DRIVE --> MOTORS["Sol ve sağ motor"]
@@ -24,7 +24,7 @@ flowchart LR
     GROUND <--> PC["Yer bilgisayarı<br/>kontrol, kayıt ve KML"]
 ```
 
-Rapor ile bu depodaki Arduino taslağı aynı saha varyantını temsil etmiyor olabilir. Rapor GPS ve ESC kullanımını gösterirken mevcut taslak GPS okumuyor ve yön/enable pinleri kullanıyor. Donanım bağlamadan önce [mimari ve uyumsuzluk notlarını](docs/ARCHITECTURE_TR.md) okuyun.
+Depodaki Arduino taslağı NEO-6M GPS verisini `Serial1` üzerinden okuyarak ölçümlere koordinat ekler. Rapor ESC kullanımını gösterirken mevcut taslak yön/enable pinli farklı bir motor arayüzü kullanır. Donanım bağlamadan önce [mimari ve uyumsuzluk notlarını](docs/ARCHITECTURE_TR.md) okuyun.
 
 ## Temel özellikler
 
@@ -41,7 +41,7 @@ Rapor ile bu depodaki Arduino taslağı aynı saha varyantını temsil etmiyor o
 - pH sensörünün analog gerilimi örneklenir ve kalibrasyon bağıntısıyla pH değerine dönüştürülür.
 - Bulanıklık sensörünün analog çıkışı ölçülür; belirlenen eşiklere göre su durumu sınıflandırılır.
 - DS18B20 sensörüyle su sıcaklığı OneWire haberleşmesi üzerinden ölçülür.
-- Raporda anlatılan saha sürümünde NEO-6M GPS ile her ölçüme koordinat eklenir; depodaki mevcut Arduino taslağında GPS okuması bulunmaz.
+- NEO-6M GPS'ten alınan geçerli ve güncel konum bilgisi her sensör ölçümüyle aynı telemetri paketinde gönderilir.
 - X8R alıcısından gelen SBUS kanalları manuel hareket ve kontrol modu seçimi için kullanılır.
 - Raspberry Pi, kumanda ile yer bilgisayarı arasındaki kontrol seçimini yapar ve Arduino ile telemetri hattı arasında köprü kurar.
 - Yer bilgisayarı ölçümleri tabloya kaydeder ve değer aralıklarını renklerle temsil eden KML harita katmanları üretir.
@@ -78,7 +78,7 @@ source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 ```
 
-Arduino için `OneWire` ve `DallasTemperature` kütüphaneleri gerekir. Raporda belirtilen GPS/ESC saha firmware'i kullanılacaksa ayrıca `TinyGPSPlus` ve `Servo` gereksinimleri doğrulanmalıdır.
+Arduino için `OneWire`, `DallasTemperature` ve `TinyGPSPlus` kütüphaneleri gerekir. Rapordaki ESC tabanlı motor varyantı kullanılacaksa `Servo` gereksinimi ayrıca doğrulanmalıdır.
 
 ## Yapılandırma
 
