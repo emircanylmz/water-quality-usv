@@ -28,14 +28,23 @@ Rapor ile bu depodaki Arduino taslağı aynı saha varyantını temsil etmiyor o
 
 ## Temel özellikler
 
-- RC ve bilgisayar kontrolü arasında eşikli/histerezisli geçiş
-- SBUS frame-loss ve failsafe bayrağı kontrolü
-- Mod değişiminde önbellekten bağımsız zorunlu durdurma
-- Arduino tarafında iki saniyelik komut watchdog'u
-- Eski `DATA,...` ve raporda görülen `LAT=...,LON=...` telemetri formatlarını birlikte okuma
-- Önceki Excel kayıtlarını koruyan atomik dosya güncellemesi
-- pH, bulanıklık ve sıcaklık için renkli KML katmanları
-- Donanım gerektirmeyen protokol, kontrol, SBUS, kayıt ve KML testleri
+**Projenin yaptığı işler**
+
+- Su yüzeyinde hareket ederek farklı noktalardan pH, bulanıklık ve su sıcaklığı verisi toplar.
+- Aracın uzaktan kumandayla veya yer bilgisayarından klavye komutlarıyla yönetilmesini sağlar.
+- Sensör ölçümlerini konum ve zaman bilgisiyle ilişkilendirerek yer istasyonunda kaydeder.
+- Toplanan değerleri pH, bulanıklık ve sıcaklık katmanları hâlinde harita üzerinde gösterir.
+- Ölçüm bölgelerinin karşılaştırılmasına ve su kalitesindeki mekânsal değişimin incelenmesine yardımcı olur.
+
+**Kullanılan yöntemler**
+
+- pH sensörünün analog gerilimi örneklenir ve kalibrasyon bağıntısıyla pH değerine dönüştürülür.
+- Bulanıklık sensörünün analog çıkışı ölçülür; belirlenen eşiklere göre su durumu sınıflandırılır.
+- DS18B20 sensörüyle su sıcaklığı OneWire haberleşmesi üzerinden ölçülür.
+- Raporda anlatılan saha sürümünde NEO-6M GPS ile her ölçüme koordinat eklenir; depodaki mevcut Arduino taslağında GPS okuması bulunmaz.
+- X8R alıcısından gelen SBUS kanalları manuel hareket ve kontrol modu seçimi için kullanılır.
+- Raspberry Pi, kumanda ile yer bilgisayarı arasındaki kontrol seçimini yapar ve Arduino ile telemetri hattı arasında köprü kurar.
+- Yer bilgisayarı ölçümleri tabloya kaydeder ve değer aralıklarını renklerle temsil eden KML harita katmanları üretir.
 
 ## Depo yapısı
 

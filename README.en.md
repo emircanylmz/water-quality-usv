@@ -28,14 +28,23 @@ The report and the Arduino sketch in this repository may describe different fiel
 
 ## Key features
 
-- Thresholded control-mode selection with a hysteresis band
-- SBUS frame-loss and failsafe flag handling
-- A forced stop on every control-mode transition, independent of command caching
-- A two-second Arduino command watchdog
-- Backward-compatible parsing of both `DATA,...` and report-style `LAT=...,LON=...` telemetry
-- Atomic Excel updates that preserve measurements from earlier sessions
-- Colored KML layers for pH, turbidity, and temperature
-- Hardware-independent tests for protocol, control, SBUS, storage, and KML logic
+**What the project does**
+
+- Travels on the water surface and collects pH, turbidity, and water-temperature measurements at different points.
+- Supports operation by RC transmitter or keyboard commands from the ground computer.
+- Associates sensor measurements with position and time information and records them at the ground station.
+- Displays the collected values on a map as separate pH, turbidity, and temperature layers.
+- Helps compare sampling areas and examine spatial changes in water quality.
+
+**Methods used**
+
+- Samples the analog voltage of the pH sensor and converts it to pH through a calibration relationship.
+- Measures the analog output of the turbidity sensor and classifies water condition using defined thresholds.
+- Measures water temperature with a DS18B20 sensor over OneWire communication.
+- Adds coordinates from a NEO-6M GPS in the field version described by the report; the Arduino sketch currently in the repository does not read GPS.
+- Uses SBUS channels from the X8R receiver for manual motion and control-mode selection.
+- Uses the Raspberry Pi to select between RC and ground-computer control and to bridge the Arduino and telemetry link.
+- Records measurements on the ground computer and generates KML map layers whose colors represent value ranges.
 
 ## Repository layout
 
